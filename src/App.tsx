@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useContext } from "react";
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { Settings } from "lucide-react";
 import { Login } from "./pages/Login";
@@ -9,7 +9,15 @@ import { Registrasi } from "./pages/Registrasi";
 import { AntrianLoket } from "./pages/AntrianLoket";
 import { RawatJalan } from "./pages/RawatJalan";
 import { Farmasi } from "./pages/Farmasi";
+import { RawatInap } from "./pages/RawatInap";
+import { Laboratorium } from "./pages/Laboratorium";
+import { Kasir } from "./pages/Kasir";
+import { IGD } from "./pages/IGD";
+import { Radiologi } from "./pages/Radiologi";
+import { Laporan } from "./pages/Laporan";
+import { BPJSBridging } from "./pages/BPJSBridging";
 import { SettingsModal } from "./components/SettingsModal";
+import { NotificationBell } from "./components/NotificationBell";
 import "./App.css";
 
 // ─── Session Context ───────────────────────────────────────
@@ -32,6 +40,12 @@ export const SessionContext = createContext<SessionCtx>({
 
 export function useSession() {
   return useContext(SessionContext);
+}
+
+// Bell wrapper lives inside HashRouter so useNavigate works
+function BellWrapper() {
+  const navigate = useNavigate();
+  return <NotificationBell onNavigate={navigate} />;
 }
 
 // ─── App ───────────────────────────────────────────────────
@@ -79,7 +93,10 @@ function AppContent() {
 
   return (
     <SessionContext.Provider value={{ user, setUser: handleSetUser }}>
-      <div className="absolute top-4 right-4 z-40">
+      <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
+        {dbConnected && user && (
+          <BellWrapper />
+        )}
         <button
           onClick={() => setIsSettingsOpen(true)}
           className="p-2 bg-white/50 backdrop-blur rounded-full hover:bg-white text-slate-600 shadow-sm transition-all"
@@ -121,6 +138,34 @@ function AppContent() {
           <Route
             path="/farmasi"
             element={dbConnected && user ? <Farmasi /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/ranap"
+            element={dbConnected && user ? <RawatInap /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/lab"
+            element={dbConnected && user ? <Laboratorium /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/kasir"
+            element={dbConnected && user ? <Kasir /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/igd"
+            element={dbConnected && user ? <IGD /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/radiologi"
+            element={dbConnected && user ? <Radiologi /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/laporan"
+            element={dbConnected && user ? <Laporan /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/bridging"
+            element={dbConnected && user ? <BPJSBridging /> : <Navigate to="/" replace />}
           />
           <Route path="*" element={<Navigate to={user ? "/dashboard" : "/"} replace />} />
         </Routes>
