@@ -23,6 +23,7 @@ import {
     BedDouble,
     Building2,
     ClipboardList,
+    List,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import clsx from "clsx";
@@ -45,6 +46,7 @@ const menuGroups: MenuGroup[] = [
             { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
             { icon: Users, label: "Data Pasien", path: "/pasien" },
             { icon: ClipboardList, label: "Registrasi & Jadwal", path: "/registrasi" },
+            { icon: List, label: "Antrian Loket", path: "/antrian" },
             { icon: Stethoscope, label: "Rawat Jalan (Poliklinik)", path: "/ralan" },
             { icon: BedDouble, label: "Rawat Inap (Bangsal)", path: "/ranap" },
             { icon: Building2, label: "IGD & Unit Gawat Darurat", path: "/igd" },

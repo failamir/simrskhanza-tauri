@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Settings, Save, Database, X, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 interface DbConfig {

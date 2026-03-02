@@ -1,17 +1,48 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { Settings } from "lucide-react";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { PatientList } from "./pages/PatientList";
+import { Registrasi } from "./pages/Registrasi";
+import { AntrianLoket } from "./pages/AntrianLoket";
+import { RawatJalan } from "./pages/RawatJalan";
+import { Farmasi } from "./pages/Farmasi";
 import { SettingsModal } from "./components/SettingsModal";
 import "./App.css";
 
+// ─── Session Context ───────────────────────────────────────
+export interface UserSession {
+  id_user: string;
+  nama: string;
+  jabatan: string;
+  level: string;
+}
+
+interface SessionCtx {
+  user: UserSession | null;
+  setUser: (u: UserSession | null) => void;
+}
+
+export const SessionContext = createContext<SessionCtx>({
+  user: null,
+  setUser: () => { },
+});
+
+export function useSession() {
+  return useContext(SessionContext);
+}
+
+// ─── App ───────────────────────────────────────────────────
 function AppContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [dbConnected, setDbConnected] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [user, setUser] = useState<UserSession | null>(() => {
+    const saved = localStorage.getItem("session");
+    return saved ? JSON.parse(saved) : null;
+  });
 
   useEffect(() => {
     const init = async () => {
@@ -21,11 +52,8 @@ function AppContent() {
           const config = JSON.parse(saved);
           await invoke("init_connection", { config });
           setDbConnected(true);
-        } catch (e) {
-          console.error("Failed to connect with saved config", e);
+        } catch {
           setDbConnected(false);
-          // Automatically open settings if connection fails on startup?
-          // Maybe just show disconnected state.
         }
       } else {
         setIsSettingsOpen(true);
@@ -35,12 +63,22 @@ function AppContent() {
     init();
   }, []);
 
+  const handleSetUser = (u: UserSession | null) => {
+    setUser(u);
+    if (u) localStorage.setItem("session", JSON.stringify(u));
+    else localStorage.removeItem("session");
+  };
+
   if (checking) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-slate-500 text-sm">Menghubungkan ke database...</div>
+      </div>
+    );
   }
 
   return (
-    <>
+    <SessionContext.Provider value={{ user, setUser: handleSetUser }}>
       <div className="absolute top-4 right-4 z-40">
         <button
           onClick={() => setIsSettingsOpen(true)}
@@ -62,20 +100,35 @@ function AppContent() {
           <Route path="/" element={<Login />} />
           <Route
             path="/dashboard"
-            element={dbConnected ? <Dashboard /> : <Navigate to="/" replace />}
+            element={dbConnected && user ? <Dashboard /> : <Navigate to="/" replace />}
           />
           <Route
             path="/pasien"
-            element={dbConnected ? <PatientList /> : <Navigate to="/" replace />}
+            element={dbConnected && user ? <PatientList /> : <Navigate to="/" replace />}
           />
+          <Route
+            path="/registrasi"
+            element={dbConnected && user ? <Registrasi /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/antrian"
+            element={dbConnected && user ? <AntrianLoket /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/ralan"
+            element={dbConnected && user ? <RawatJalan /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/farmasi"
+            element={dbConnected && user ? <Farmasi /> : <Navigate to="/" replace />}
+          />
+          <Route path="*" element={<Navigate to={user ? "/dashboard" : "/"} replace />} />
         </Routes>
       </HashRouter>
-    </>
+    </SessionContext.Provider>
   );
 }
 
-function App() {
+export default function App() {
   return <AppContent />;
 }
-
-export default App;
