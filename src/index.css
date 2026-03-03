@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+@layer base {
+    .dark {
+        color-scheme: dark;
+        /* Mapped inverted Slate colors for consistent dark mode backgrounds */
+        --color-slate-50: #020617;
+        --color-slate-100: #0f172a;
+        --color-slate-200: #1e293b;
+        --color-slate-300: #334155;
+        --color-slate-400: #475569;
+        --color-slate-500: #94a3b8;
+        --color-slate-600: #cbd5e1;
+        --color-slate-700: #e2e8f0;
+        --color-slate-800: #f1f5f9;
+        --color-slate-900: #f8fafc;
+        --color-slate-950: #ffffff;
+        --color-white: #0f172a;
+        --color-black: #f8fafc;
+
+        /* Safely dim primary card backgrounds for a premium feel */
+        --color-blue-50: #172554;
+        --color-blue-100: #1e3a8a;
+        --color-emerald-50: #022c22;
+        --color-emerald-100: #064e3b;
+        --color-amber-50: #451a03;
+        --color-amber-100: #78350f;
+        --color-violet-50: #2e1065;
+        --color-violet-100: #4c1d95;
+        --color-red-50: #450a0a;
+        --color-red-100: #7f1d1d;
+        --color-teal-50: #042f2e;
+        --color-teal-100: #134e4a;
+        --color-indigo-50: #312e81;
+        --color-indigo-100: #3730a3;
+    }
+}

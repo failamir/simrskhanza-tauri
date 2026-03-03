@@ -1,1 +1,5 @@
 /* App.css cleared for Tailwind migration */
+
+header {
+    padding-right: 7.5rem !important;
+}

@@ -1,7 +1,7 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { HashRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
-import { Settings } from "lucide-react";
+import { Settings, Moon, Sun } from "lucide-react";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { PatientList } from "./pages/PatientList";
@@ -58,6 +58,16 @@ function AppContent() {
     return saved ? JSON.parse(saved) : null;
   });
 
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    return (localStorage.getItem("theme") as "light" | "dark") || "light";
+  });
+
+  useEffect(() => {
+    if (theme === "dark") document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
   useEffect(() => {
     const init = async () => {
       const saved = localStorage.getItem("dbConfig");
@@ -93,26 +103,35 @@ function AppContent() {
 
   return (
     <SessionContext.Provider value={{ user, setUser: handleSetUser }}>
-      <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
-        {dbConnected && user && (
-          <BellWrapper />
-        )}
-        <button
-          onClick={() => setIsSettingsOpen(true)}
-          className="p-2 bg-white/50 backdrop-blur rounded-full hover:bg-white text-slate-600 shadow-sm transition-all"
-          title="Database Settings"
-        >
-          <Settings className="w-5 h-5" />
-        </button>
-      </div>
-
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        onSave={() => setDbConnected(true)}
-      />
-
       <HashRouter>
+        <div className="fixed bottom-4 right-4 z-[100] flex items-center gap-2">
+          {dbConnected && user && (
+            <div className="bg-white/80 backdrop-blur rounded-full shadow-lg border border-slate-200">
+              <BellWrapper />
+            </div>
+          )}
+          <button
+            onClick={() => setTheme(t => t === "light" ? "dark" : "light")}
+            className="p-2.5 bg-white/80 backdrop-blur rounded-full hover:bg-white text-slate-600 shadow-lg border border-slate-200 transition-all"
+            title="Toggle Theme"
+          >
+            {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </button>
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="p-2.5 bg-white/80 backdrop-blur rounded-full hover:bg-white text-slate-600 shadow-lg border border-slate-200 transition-all"
+            title="Database Settings"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+        </div>
+
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          onSave={() => setDbConnected(true)}
+        />
+
         <Routes>
           <Route path="/" element={<Login />} />
           <Route

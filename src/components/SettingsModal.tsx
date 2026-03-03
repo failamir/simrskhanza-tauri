@@ -18,32 +18,59 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
-    const [config, setConfig] = useState<DbConfig>({
-        host: "localhost",
-        port: 3306,
-        user: "root",
-        pass: "",
-        dbname: "sik",
+    const defaultProfile = { host: "localhost", port: 3306, user: "root", pass: "", dbname: "sik" };
+    const [profiles, setProfiles] = useState<{ profile1: DbConfig, profile2: DbConfig }>({
+        profile1: { ...defaultProfile },
+        profile2: { ...defaultProfile }
     });
+    const [activeProfile, setActiveProfile] = useState<"profile1" | "profile2">("profile1");
+
     const [status, setStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
     const [message, setMessage] = useState("");
 
     useEffect(() => {
-        const saved = localStorage.getItem("dbConfig");
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                setConfig({ ...config, ...parsed }); // Merge to ensure types
-            } catch (e) {
-                console.error("Failed to parse config", e);
-            }
+        if (!isOpen) return;
+
+        const saved1 = localStorage.getItem("dbConfig_profile1");
+        const saved2 = localStorage.getItem("dbConfig_profile2");
+        let p1 = { ...defaultProfile };
+        let p2 = { ...defaultProfile };
+
+        if (saved1) {
+            try { p1 = { ...p1, ...JSON.parse(saved1) }; } catch (e) { console.error(e); }
         }
-    }, []);
+        if (saved2) {
+            try { p2 = { ...p2, ...JSON.parse(saved2) }; } catch (e) { console.error(e); }
+        }
+
+        const active = localStorage.getItem("dbConfig_active") as "profile1" | "profile2";
+        if (active === "profile1" || active === "profile2") {
+            setActiveProfile(active);
+        }
+
+        // Migration from old single config
+        const legacy = localStorage.getItem("dbConfig");
+        if (legacy && !saved1 && !saved2) {
+            try { p1 = { ...p1, ...JSON.parse(legacy) }; } catch (e) { console.error(e); }
+        }
+
+        setProfiles({ profile1: p1, profile2: p2 });
+        setStatus("idle");
+        setMessage("");
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
+    const config = profiles[activeProfile];
+
     const handleChange = (field: keyof DbConfig, value: string | number) => {
-        setConfig((prev) => ({ ...prev, [field]: value }));
+        setProfiles((prev) => ({
+            ...prev,
+            [activeProfile]: {
+                ...prev[activeProfile],
+                [field]: value
+            }
+        }));
         setStatus("idle");
         setMessage("");
     };
@@ -65,7 +92,12 @@ export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
         setStatus("testing");
         try {
             await invoke("init_connection", { config });
+
+            localStorage.setItem("dbConfig_profile1", JSON.stringify(profiles.profile1));
+            localStorage.setItem("dbConfig_profile2", JSON.stringify(profiles.profile2));
+            localStorage.setItem("dbConfig_active", activeProfile);
             localStorage.setItem("dbConfig", JSON.stringify(config));
+
             setStatus("success");
             setMessage("Configuration saved and connected.");
             setTimeout(() => {
@@ -92,7 +124,29 @@ export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
                 </div>
 
                 <div className="p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Multi-profile Selector */}
+                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                        <button
+                            onClick={() => setActiveProfile("profile1")}
+                            className={twMerge(
+                                "flex-1 py-1.5 text-sm font-medium rounded-md transition-all",
+                                activeProfile === "profile1" ? "bg-white shadow text-blue-600" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                            )}
+                        >
+                            Setting 1
+                        </button>
+                        <button
+                            onClick={() => setActiveProfile("profile2")}
+                            className={twMerge(
+                                "flex-1 py-1.5 text-sm font-medium rounded-md transition-all",
+                                activeProfile === "profile2" ? "bg-white shadow text-blue-600" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                            )}
+                        >
+                            Setting 2
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-2">
                         <div className="space-y-1">
                             <label className="text-xs font-medium text-slate-500 uppercase">Host</label>
                             <input
@@ -108,7 +162,7 @@ export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
                             <input
                                 type="number"
                                 value={config.port}
-                                onChange={(e) => handleChange("port", parseInt(e.target.value))}
+                                onChange={(e) => handleChange("port", parseInt(e.target.value) || 3306)}
                                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 bg-slate-50"
                                 placeholder="3306"
                             />
@@ -160,7 +214,7 @@ export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
                             {status === "testing" && <Loader2 className="w-4 h-4 animate-spin" />}
                             {status === "success" && <CheckCircle2 className="w-4 h-4" />}
                             {status === "error" && <AlertCircle className="w-4 h-4" />}
-                            <span>{message}</span>
+                            <span className="break-all">{message}</span>
                         </div>
                     )}
                 </div>

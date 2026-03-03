@@ -385,10 +385,30 @@ export function PatientList() {
                         </div>
                         <button onClick={handleSearch} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">Cari</button>
                         <button onClick={handleReset} className="p-2 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 transition-colors" title="Reset"><RefreshCw className="w-4 h-4" /></button>
-                        <div className="w-px h-6 bg-slate-200" />
+                        <div className="w-px h-6 bg-slate-200 mx-2" />
+
+                        {/* Top Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center gap-1.5 mr-2">
+                                <button
+                                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                                    disabled={page === 0}
+                                    className="p-1.5 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                ><ChevronLeft className="w-4 h-4" /></button>
+                                <span className="text-xs font-semibold text-slate-500 w-16 text-center">
+                                    {page + 1} / {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                                    disabled={page >= totalPages - 1}
+                                    className="p-1.5 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                ><ChevronRight className="w-4 h-4" /></button>
+                            </div>
+                        )}
+
                         <button
                             onClick={() => setModal({ open: true, mode: "add" })}
-                            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors shadow-sm"
                         >
                             <Plus className="w-4 h-4" />
                             Tambah Pasien
